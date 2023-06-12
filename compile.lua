@@ -60,7 +60,7 @@ if data then
         result = result,
         output = output
     }
-    ngx.say(cjson.encode({status = "ok", body = body}))
+    ngx.say(cjson.encode({status = "success", body = body}))
 else
     ngx.say(cjson.encode({status = "error", error = "No data received"}))
 end
