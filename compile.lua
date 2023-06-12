@@ -45,14 +45,16 @@ if data then
 
     local compStatus, code = pcall(compiler.compile, ast, true)
     if not compStatus or not code then
-        ngx.say(cjson.encode({status = "error", error = "კომპილაციის შეცდომა: " .. code})) -- Compile error
+        local errorMessage = string.match(code, ":.+:(.+)$")
+        ngx.say(cjson.encode({status = "error", error = "კომპილაციის შეცდომა: " .. errorMessage})) -- Compile error
         return
     end
 
     local trace = {}
     local execStatus, result, output = pcall(interpreter.execute, code, trace, true)
     if not execStatus then
-        ngx.say(cjson.encode({status = "error", error = "გაშვების შეცდომა: " .. result})) -- Execution error
+        local errorMessage = string.match(result, ":.+:(.+)$")
+        ngx.say(cjson.encode({status = "error", error = "გაშვების შეცდომა: " .. errorMessage})) -- Execution error
         return
     end
 
