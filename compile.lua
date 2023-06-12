@@ -45,14 +45,14 @@ if data then
 
     local compStatus, code = pcall(compiler.compile, ast)
     if not compStatus or not code then
-        ngx.say(cjson.encode({status = "error", error = "Compilation failed"}))
+        ngx.say(cjson.encode({status = "error", error = "Compilation failed: " .. code}))
         return
     end
 
     local trace = {}
     local execStatus, result, output = pcall(interpreter.execute, code, trace)
-    if not execStatus and not result then
-        ngx.say(cjson.encode({status = "error", error = "Execution failed"}))
+    if not execStatus then
+        ngx.say(cjson.encode({status = "error", error = "Execution failed: " .. result}))
         return
     end
 
