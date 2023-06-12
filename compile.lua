@@ -7,10 +7,10 @@ local cjson = require "cjson"
 local function containsShellCommands(input)
     if
         string.find(input, "%$%s*%b()") or string.find(input, '%$%s*%b""') or string.find(input, 'ბრძანება%s*%b""') or
-        string.find(input, "ბრძანება%s*%b()") or
-        string.find(input, "გაუშვი%s*ბრძანება%s*%b()") or
-        string.find(input, 'გაუშვი%s*ბრძანება%s*%b""')
-    then
+            string.find(input, "ბრძანება%s*%b()") or
+            string.find(input, "გაუშვი%s*ბრძანება%s*%b()") or
+            string.find(input, 'გაუშვი%s*ბრძანება%s*%b""')
+     then
         return true
     end
     return false
@@ -22,19 +22,19 @@ local method = ngx.req.get_method()
 local data = ngx.req.get_body_data()
 
 if method ~= "POST" then
-    ngx.say(cjson.encode({ status = "error", error = "მხოლოდ POST მეთოდია დაიშვება" })) -- Only POST method is allowed
+    ngx.say(cjson.encode({status = "error", error = "მხოლოდ POST მეთოდია დაიშვება"})) -- Only POST method is allowed
     return
 end
 
 if data then
     local status, json = pcall(cjson.decode, data)
     if not status then
-        ngx.say(cjson.encode({ status = "error", error = "არასწორი JSON ფორმატი" })) -- Invalid JSON
+        ngx.say(cjson.encode({status = "error", error = "არასწორი JSON ფორმატი"})) -- Invalid JSON
         return
     end
 
     if containsShellCommands(json.code) then
-        ngx.say(cjson.encode({ status = "error", error = "შელის ბრძანებები არ დაიშვება" })) -- Shell commands are not supported
+        ngx.say(cjson.encode({status = "error", error = "შელის ბრძანებები არ დაიშვება"})) -- Shell commands are not supported
         return
     end
 
@@ -43,20 +43,28 @@ if data then
         local furthestMatch = common.getFurthestMatch()
         local newlineCount = common.count("\n", json.code:sub(1, furthestMatch))
         local errorLine = newlineCount + 1
-        ngx.say(cjson.encode({
-            status = "error",
-            error = "სინტაქსური შეცდომა ამ ხაზზე: " ..
-                string.sub(json.code, furthestMatch - 20, furthestMatch - 1) ..
-                "|" .. string.sub(json.code, furthestMatch, furthestMatch + 21)
-        }))                                                                -- Parsing error
+        ngx.say(
+            cjson.encode(
+                {
+                    status = "error",
+                    error = "სინტაქსური შეცდომა ამ ხაზზე: " .. errorLine
+                }
+            )
+        ) -- Parsing error
         return
     end
 
     local compStatus, code = pcall(compiler.compile, ast, true)
     if not compStatus or not code then
         local errorMessage = string.match(code, ":.+:(.+)$")
-        ngx.say(cjson.encode({ status = "error", error = "კომპილაციის შეცდომა: " ..
-        errorMessage }))                                                                           -- Compile error
+        ngx.say(
+            cjson.encode(
+                {
+                    status = "error",
+                    error = "კომპილაციის შეცდომა: " .. errorMessage
+                }
+            )
+        ) -- Compile error
         return
     end
 
@@ -64,8 +72,14 @@ if data then
     local execStatus, result, output = pcall(interpreter.execute, code, trace, true)
     if not execStatus then
         local errorMessage = string.match(result, ":.+:(.+)$")
-        ngx.say(cjson.encode({ status = "error", error = "გაშვების შეცდომა: " ..
-        errorMessage }))                                                                        -- Execution error
+        ngx.say(
+            cjson.encode(
+                {
+                    status = "error",
+                    error = "გაშვების შეცდომა: " .. errorMessage
+                }
+            )
+        ) -- Execution error
         return
     end
 
@@ -73,7 +87,7 @@ if data then
         result = result,
         output = output
     }
-    ngx.say(cjson.encode({ status = "success", body = body }))
+    ngx.say(cjson.encode({status = "success", body = body}))
 else
-    ngx.say(cjson.encode({ status = "error", error = "მონაცემები ვერ მოიძებნა" })) -- No data received
+    ngx.say(cjson.encode({status = "error", error = "მონაცემები ვერ მოიძებნა"})) -- No data received
 end
