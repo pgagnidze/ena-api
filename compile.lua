@@ -3,6 +3,34 @@ local interpreter = require "ena.interpreter"
 local compiler = require "ena.compiler"
 local cjson = require "cjson"
 
+local function containsShellCommands(input)
+    if string.find(input, "%$%s*%b()") or
+       string.find(input, "%$%s*%b\"\"") or
+       string.find(input, "ბრძანება%s*%b\"\"") or
+       string.find(input, "ბრძანება%s*%b()") or
+       string.find(input, "გაუშვი%s*ბრძანება%s*%b()") or
+       string.find(input, "გაუშვი%s*ბრძანება%s*%b\"\"") then
+        return true
+    end
+    return false
+end
+
+local function containsPrintCommands(input)
+    if string.find(input, "@%s*%b()") or
+       string.find(input, "@%s*%b\"\"") or
+       string.find(input, "@%s*[%w_]+") or
+       string.find(input, "მაჩვენე%s+%b()") or
+       string.find(input, "მაჩვენე%s+%b\"\"") or
+       string.find(input, "მაჩვენე%s+[%w_]+") or
+       string.find(input, "მაჩვენე%s+მნიშვნელობა%s*%b()") or
+       string.find(input, "მაჩვენე%s+მნიშვნელობა%s*%b\"\"") or
+       string.find(input, "მაჩვენე%s+მნიშვნელობა%s+[%w_]+") then
+        return true
+    end
+    return false
+end
+
+
 ngx.header["Content-Type"] = "application/json"
 ngx.req.read_body()
 local method = ngx.req.get_method()
@@ -17,6 +45,16 @@ if data then
     local status, json = pcall(cjson.decode, data)
     if not status then
         ngx.say(cjson.encode({ status = "error", error = "Invalid JSON" }))
+        return
+    end
+
+    if containsShellCommands(json.code) then
+        ngx.say(cjson.encode({ status = "error", error = "Shell commands are not supported" }))
+        return
+    end
+
+    if containsPrintCommands(json.code) then
+        ngx.say(cjson.encode({ status = "error", error = "Print commands are not supported" }))
         return
     end
 
