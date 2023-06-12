@@ -51,7 +51,7 @@ if data then
 
     local trace = {}
     local execStatus, result, output = pcall(interpreter.execute, code, trace)
-    if not execStatus or not result then
+    if not execStatus and not result then
         ngx.say(cjson.encode({status = "error", error = "Execution failed"}))
         return
     end
