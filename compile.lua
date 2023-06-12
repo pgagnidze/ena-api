@@ -39,13 +39,10 @@ if data then
         return
     end
 
-    result = {
-        ast = ast,
-        code = code,
-        trace = trace,
+    local body = {
         result = result
     }
-    ngx.say(cjson.encode({ status = "ok", result = result }))
+    ngx.say(cjson.encode({ status = "ok", body = body }))
 else
     ngx.say(cjson.encode({ status = "error", error = "No data received" }))
 end
