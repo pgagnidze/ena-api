@@ -4,7 +4,7 @@
 #
 
 app = "ena-api"
-primary_region = "atl"
+primary_region = "ams"
 
 [http_service]
   internal_port = 8080
