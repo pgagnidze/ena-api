@@ -11,3 +11,7 @@
 ### Test the endpoint
 
 `curl -X POST -H "Content-Type: application/json" -d '{"code": "function main () {return 1}"}' localhost:8080/compile`
+
+### Disclaimer
+
+This API doesn't support shell execution for security reasons.
