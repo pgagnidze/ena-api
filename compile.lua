@@ -21,6 +21,10 @@ ngx.req.read_body()
 local method = ngx.req.get_method()
 local data = ngx.req.get_body_data()
 
+if method == "OPTIONS" then
+    ngx.exit(ngx.HTTP_OK)
+end
+
 if method ~= "POST" then
     ngx.say(cjson.encode({status = "error", error = "მხოლოდ POST მეთოდია დაიშვება"})) -- Only POST method is allowed
     return
