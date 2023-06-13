@@ -22,8 +22,7 @@ local method = ngx.req.get_method()
 local data = ngx.req.get_body_data()
 
 if method == "OPTIONS" then
-    ngx.say(cjson.encode({status = "success", body = "Preflight allowed"})) -- Preflight request
-    return
+    ngx.exit(ngx.HTTP_OK)
 end
 
 if method ~= "POST" then
