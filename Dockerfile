@@ -1,9 +1,12 @@
-FROM openresty/openresty:jammy
+FROM openresty/openresty:alpine-fat
 
 COPY nginx.conf /usr/local/openresty/nginx/conf/nginx.conf
 COPY compile.lua /etc/nginx/lua/compile.lua
 
-RUN apt-get update && apt-get install -y git gcc && luarocks install ena && luarocks install lua-cjson
+RUN apk add --no-cache git gcc musl-dev \
+    && luarocks install ena \
+    && luarocks install lua-cjson \
+    && apk del git gcc musl-dev
 
 EXPOSE 8080
 
