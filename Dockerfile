@@ -1,13 +1,14 @@
-FROM openresty/openresty:alpine-fat
+FROM nickblah/luajit:2.1-luarocks-alpine
 
-COPY nginx.conf /usr/local/openresty/nginx/conf/nginx.conf
-COPY compile.lua /etc/nginx/lua/compile.lua
+WORKDIR /app
 
-RUN apk add --no-cache git gcc musl-dev \
+RUN apk add --no-cache git gcc musl-dev linux-headers \
+    && luarocks install mote \
     && luarocks install ena \
-    && luarocks install lua-cjson \
-    && apk del git gcc musl-dev
+    && apk del git gcc musl-dev linux-headers
+
+COPY main.lua .
 
 EXPOSE 8080
 
-CMD ["/usr/local/openresty/bin/openresty", "-g", "daemon off;"]
+CMD ["luajit", "main.lua"]

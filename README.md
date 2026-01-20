@@ -1,17 +1,33 @@
-# Compile API for Lua
+# Ena Compile API
 
-## Build docker image
+HTTP API for compiling and executing [Ena](https://github.com/ena-lang/ena) code.
 
-`docker build -t my-api-resty .`
+## Build
 
-## Run docker image
+```bash
+docker build -t ena-api .
+```
 
-`docker run -p 8080:8080 my-api-resty`
+## Run
 
-## Test the endpoint
+```bash
+docker run -p 8080:8080 ena-api
+```
 
-`curl -X POST -H "Content-Type: application/json" -d '{"code": "function main () {return 1}"}' localhost:8080/compile`
+## Usage
 
-## Disclaimer
+```bash
+curl -X POST -H "Content-Type: application/json" \
+  -d '{"code": "function main() { return 1 + 2 }"}' \
+  localhost:8080/compile
+```
 
-This API doesn't support shell execution for security reasons.
+Response:
+
+```json
+{"status": "success", "body": {"result": 3, "output": {}}}
+```
+
+## Security
+
+Shell commands are blocked for security reasons.
