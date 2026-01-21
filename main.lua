@@ -57,7 +57,7 @@ mote.post("/compile", function(ctx)
 		ctx:throw(500, "გაშვების შეცდომა: " .. error_message)
 	end
 
-	ctx.response.body = { status = "success", body = { result = result, output = output } }
+	ctx.response.body = { result = result, output = output }
 end)
 
 local port = tonumber(os.getenv("PORT")) or 8080
