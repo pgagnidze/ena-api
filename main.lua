@@ -25,15 +25,20 @@ local function contains_shell_commands(input)
 	return false
 end
 
+local function error_response(ctx, status, message)
+	ctx.response.status = status
+	ctx.response.body = { status = "error", error = message }
+end
+
 mote.post("/compile", function(ctx)
 	if not ctx.request.body or not ctx.request.body.code then
-		ctx:throw(400, "მონაცემები ვერ მოიძებნა")
+		return error_response(ctx, 400, "მონაცემები ვერ მოიძებნა")
 	end
 
 	local code = ctx.request.body.code
 
 	if contains_shell_commands(code) then
-		ctx:throw(400, "შელის ბრძანებები არ დაიშვება")
+		return error_response(ctx, 400, "შელის ბრძანებები არ დაიშვება")
 	end
 
 	local ast_status, ast = pcall(parser.parse, code)
@@ -41,23 +46,23 @@ mote.post("/compile", function(ctx)
 		local furthest_match = common.getFurthestMatch()
 		local newline_count = common.count("\n", code:sub(1, furthest_match))
 		local error_line = newline_count + 1
-		ctx:throw(400, "სინტაქსური შეცდომა ამ ხაზზე: " .. error_line)
+		return error_response(ctx, 400, "სინტაქსური შეცდომა ამ ხაზზე: " .. error_line)
 	end
 
 	local comp_status, compiled = pcall(compiler.compile, ast, true)
 	if not comp_status or not compiled then
 		local error_message = string.match(compiled, ":.+:(.+)$") or compiled
-		ctx:throw(400, "კომპილაციის შეცდომა: " .. error_message)
+		return error_response(ctx, 400, "კომპილაციის შეცდომა: " .. error_message)
 	end
 
 	local trace = {}
 	local exec_status, result, output = pcall(interpreter.execute, compiled, trace, true)
 	if not exec_status then
 		local error_message = string.match(result, ":.+:(.+)$") or result
-		ctx:throw(500, "გაშვების შეცდომა: " .. error_message)
+		return error_response(ctx, 500, "გაშვების შეცდომა: " .. error_message)
 	end
 
-	ctx.response.body = { result = result, output = output }
+	ctx.response.body = { status = "success", body = { result = result, output = output } }
 end)
 
 local port = tonumber(os.getenv("PORT")) or 8080
